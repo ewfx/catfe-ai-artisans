@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Context-based AI Testing system</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #92e0f4;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            flex-direction: column;
+        }
+        .container {
+            width: 1000px;
+            margin: 50px auto;
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+        h1, h2, h3 {
+            color: #333;
+            font-size: 20px;
+            text-align: center;
+        }
+        h4 {
+            color: #585757;
+            font-size: 14px;
+            text-align: center;
+            margin-top: 10px;
+        }
+        label {
+            font-weight: bold;
+            margin-top: 10px;
+            display: block;
+            text-align: left;
+        }
+        textarea, input {
+            width: 100%;
+            padding: 10px;
+            margin-top: 5px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        button {
+            width: 100%;
+            padding: 10px;
+            box-sizing: border-box;
+            margin-top: 10px;
+            background: #007bff;
+            color: white;
+            border: 1px solid #007bff;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        #downloadBtn {
+            display: none;
+            background: #28a745;
+        }
+        #message {
+            margin-top: 15px;
+            font-weight: bold;
+            color: #28a745;
+        }
+        #fileUploadSection {
+            display: none;
+            margin-top: 10px;
+        }
+        .fileUpload-container{
+           display: flex;
+           align-items: center;
+           white-space: nowrap; 
+           gap: 10px;
+        }
+        .checkbox-container {
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            margin-top: 10px;
+        }
+        .checkbox-container label {
+            margin-top: 0;
+            white-space: nowrap;
+        }
+        .formdata {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-right: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>WELLSFARGO - 2025 TECHNOLOGY HACKATHON</h1>
+        <h2>Welcome to AI-Artisans</h2>
+        <h3>Context-based AI Testing System</h3>
+        <h4>Targeted Use Cases: Payment Services Testing, Fraud Detection & Risk Scoring, Loan & Credit Risk Assessment, Customer Service Chatbots & NLP-based Testing, Regulatory Compliance & Audit Validation</h4>
+        <form id="testCaseForm" class="formdata">
+            <label for="context">Enter Context:</label>
+            <textarea id="context" name="context" rows="4" placeholder="Enter your code context here"></textarea>
+            <label for="num_cases">Number of Cases:</label>
+            <input type="number" id="num_cases" name="num_cases" min="1" value="10">
+            
+            <div class="checkbox-container">
+                <label for="uploadCheck">Check this box to test an available codebase</label>
+                <input type="checkbox" id="uploadCheck" name="uploadCheck">
+            </div>
+            
+            <div id="fileUploadSection">
+                <div class="fileUpload-container">
+                    <label for="fileUpload">Upload File:</label>
+                    <input type="file" id="fileUpload" name="fileUpload">
+                </div>
+            </div>
+            
+            <button type="submit">Generate</button>
+        </form>
+        <button id="downloadBtn" onclick="downloadFile()">Download Test Scenario and Test Data</button>
+        <div id="message"></div>
+    </div>
+
+    <script>
+        document.getElementById("uploadCheck").addEventListener("change", function() {
+            let fileUploadSection = document.getElementById("fileUploadSection");
+            fileUploadSection.style.display = this.checked ? "block" : "none";
+        });
+
+        document.getElementById("uploadCheck").addEventListener("change", function() {
+            let fileUploadSection = document.getElementById("fileUploadSection");
+            let downloadBtn = document.getElementById("downloadBtn");
+
+            if (this.checked) {
+                fileUploadSection.style.display = "block";
+                downloadBtn.innerText = "Download Test Scenario, Test Data, Test Script, and Test Results";
+            } else {
+                fileUploadSection.style.display = "none";
+                downloadBtn.innerText = "Download Test Scenario and Test Data";
+            }
+        });
+
+        document.getElementById("testCaseForm").onsubmit = async function(event) {
+            event.preventDefault();
+            let formData = new FormData(event.target);
+            let fileInput = document.getElementById("fileUpload");
+
+            if (fileInput.files.length > 0) {
+                formData.append("file", fileInput.files[0]);
+            }
+
+            let response = await fetch("/", {
+                method: "POST",
+                body: formData
+            });
+            let result = await response.json();
+            
+            let messageDiv = document.getElementById("message");
+            messageDiv.innerText = result.message || "Error generating test cases.";
+
+            let downloadBtn = document.getElementById("downloadBtn");
+            if (result.message) {
+                downloadBtn.style.display = "block";
+            }
+        };
+
+        function downloadFile() {
+        let isChecked = document.getElementById("uploadCheck").checked;
+        
+        if (isChecked) {
+            fetch("/multi_download")
+            .then(response => response.json())
+            .then(data => {
+                data.files.forEach(file => {
+                    const link = document.createElement("a");
+                    link.href = `/fetch_file?path=${encodeURIComponent(file)}`;
+                    link.download = file.split('/').pop(); // Extract filename
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                });
+            })
+            .catch(error => console.error("Download failed", error));
+        } else {
+            window.location.href = "/download";
+        }
+    }
+    </script>
+</body>
+</html>
