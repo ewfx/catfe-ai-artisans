@@ -201,13 +201,13 @@ def automate_python_testing(py_file, filename):
             f.write(trimmed_code) 
 
         with open(result_file_path, "w") as result_file:
-            result_file.write("\n\n📊 Running tests with coverage analysis...\n")
+            result_file.write("\n\n Running tests with coverage analysis...\n")
             subprocess.run(["pytest", test_file], stdout=result_file, stderr=result_file)
             coverage_path = os.path.join(script_dir, "TestFiles/.")
             subprocess.run(["coverage", "run", str(f"--source={coverage_path}"), "-m", "pytest", test_file], stdout=result_file, stderr=result_file)
             subprocess.run(["coverage", "report"], stdout=result_file, stderr=result_file)
             subprocess.run(["coverage", "html"], stdout=result_file, stderr=result_file)
-            result_file.write("\n\n✅ Test execution and coverage report completed!\n")
+            result_file.write("\n\n Test execution and coverage report completed!\n")
         
         return jsonify({"message": "Test cases generated and executed successfully."})
     except Exception as e:
@@ -243,15 +243,19 @@ def index():
         context = request.form.get("context")
         num_cases = int(request.form.get("num_cases", 10))
 
-        uploaded_file = request.files.get("file")
-        if uploaded_file and uploaded_file.filename:
-            file_path = os.path.join(upload_file_path, uploaded_file.filename)
-            uploaded_file.save(file_path)
-            generate_test_cases(context, num_cases, file_path, True)
-            automate_python_testing(file_path, uploaded_file.filename)
-            return save_test_results(context)
-        else:
-            return generate_test_cases(context, num_cases)
+        try:
+            uploaded_file = request.files.get("file")
+            if uploaded_file and uploaded_file.filename:
+                file_path = os.path.join(upload_file_path, uploaded_file.filename)
+                uploaded_file.save(file_path)
+                generate_test_cases(context, num_cases, file_path, True)
+                automate_python_testing(file_path, uploaded_file.filename)
+                return save_test_results(context)
+            else:
+                return generate_test_cases(context, num_cases)
+        except Exception as e:
+            print("Error:", str(e))
+            return jsonify({"error": str(e)})  
     return render_template("index.html")
 
 @app.route("/download")
