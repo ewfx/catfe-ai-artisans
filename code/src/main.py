@@ -20,10 +20,10 @@ def load_config():
         return jsonify({"error": str(e)})  
 
 script_dir = os.path.dirname(os.path.abspath(__file__))
-excel_file_path = os.path.join(script_dir, "Generated/test_cases.xlsx")
+excel_file_path = os.path.join(script_dir, "Generated/Test_Scenarios_Test_Data.xlsx")
 upload_file_path = os.path.join(script_dir, "TestFiles")
-test_file_path = os.path.join(script_dir, "TestFiles/test_file.py")
-result_file_path = os.path.join(script_dir, "Generated/results.txt")
+test_file_path = os.path.join(script_dir, "TestFiles/Test_Script.py")
+result_file_path = os.path.join(script_dir, "Generated/Actual_Test_Results.txt")
 test_cases = None
 CONFIG = load_config()
 API_KEY = CONFIG["gemini_api_key"]
@@ -194,7 +194,7 @@ def automate_python_testing(py_file, filename):
         with open(py_file, "r") as f:
             python_code = f.read()
         test_code = generate_pytest_tests(python_code, filename)
-        test_file = os.path.join(script_dir, "TestFiles/test_file.py")
+        test_file = os.path.join(script_dir, "TestFiles/Test_Script.py")
         with open(test_file, "w") as f:
             lines = test_code.splitlines() 
             trimmed_code = "\n".join(lines[1:-1]) 
@@ -202,7 +202,6 @@ def automate_python_testing(py_file, filename):
 
         with open(result_file_path, "w") as result_file:
             result_file.write("\n\n Running tests with coverage analysis...\n")
-            subprocess.run(["pytest", test_file], stdout=result_file, stderr=result_file)
             coverage_path = os.path.join(script_dir, "TestFiles/.")
             subprocess.run(["coverage", "run", str(f"--source={coverage_path}"), "-m", "pytest", test_file], stdout=result_file, stderr=result_file)
             subprocess.run(["coverage", "report"], stdout=result_file, stderr=result_file)
